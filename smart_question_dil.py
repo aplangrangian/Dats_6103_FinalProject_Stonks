@@ -34,7 +34,8 @@ df_train.info()
 print(df_train.dtypes)
 # let's put the categorical data in the columns variable for later
 columns =['Gender','Customer Type', 'Type of Travel', 'Class','Inflight wifi service','Departure/Arrival time convenient','Ease of Online booking','Gate location','Food and drink','Online boarding','Seat comfort','Inflight entertainment','On-board service','Leg room service','Baggage handling','Checkin service','Inflight service','Cleanliness']
-
+df_train_num=df_train.drop(labels=columns, axis=1)
+df_test_num=df_test.drop(labels=columns, axis =1)
 
 # looks good, now we can look at our data.
 # first question is which of the categorical and which of the discrete influence satisfaction the most.
@@ -73,8 +74,26 @@ plt.show()  # same as above.
 
 # Let's start prep by making Dummy variables for the variables
 # Drop first so to avoid co-linearity
-df_train_dum=pd.get_dummies(df_train, columns=columns, drop_first=True)
-df_test_dum=pd.get_dummies(df_test, columns=columns, drop_first=True)
+#df_train_dum=pd.get_dummies(df_train, columns=columns, drop_first=True)
+#df_test_dum=pd.get_dummies(df_test, columns=columns, drop_first=True)
+
+
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn import preprocessing
+from sklearn.feature_selection import SelectKBest, chi2
+
+#dummy variable creation
+lencoders = {}
+for col in df_train.select_dtypes(include=['object']).columns:
+    lencoders[col] = LabelEncoder()
+    df_train[col] = lencoders[col].fit_transform(df_train[col])
+
+lencoders_t = {}
+for col in df_test.select_dtypes(include=['object']).columns:
+    lencoders_t[col] = LabelEncoder()
+    df_test[col] = lencoders[col].fit_transform(df_test[col])
+
 
 # function for making dummy of 'satisfaction'
 def transform_satisfaction(x):
@@ -86,21 +105,37 @@ def transform_satisfaction(x):
         return -1
 
 # Apply function
-df_train_dum['satisfaction'] = df_train_dum['satisfaction'].apply(transform_satisfaction)
-df_test_dum['satisfaction'] = df_test_dum['satisfaction'].apply(transform_satisfaction)
+df_train_num['satisfaction'] = df_train_num['satisfaction'].apply(transform_satisfaction)
+df_test_num['satisfaction'] = df_test_num['satisfaction'].apply(transform_satisfaction)
 
+# Chi2, top 10 features
+# Let's use chi2 test of importance to find the top 10 categorical features
+r_scaler = preprocessing.MinMaxScaler()
+r_scaler.fit(df_train)
+modified_data = pd.DataFrame(r_scaler.transform(df_train), columns=df_train.columns)
+print(modified_data.head)
+
+selector = SelectKBest(chi2, k=10)
+x_train=modified_data.drop(labels="satisfaction",axis=1) # df with only satisfaction and df with every other variable
+y_train=modified_data["satisfaction"]
+selector.fit(x_train, y_train)
+x_new = selector.transform(x_train)
+print(x_train.columns[selector.get_support(indices=True)])
+
+# 7 features here are important ones for the selection process.
+# We'll create a list of these and put them in our model.
+df_train_important=["Customer Type", "Type of Travel", "Class", "Flight Distance", "Inflight wifi service", "Online boarding", "Seat comfort"]
 
 from sklearn.model_selection import train_test_split,StratifiedKFold,GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score, roc_curve
-from sklearn import preprocessing
-from sklearn.feature_selection import SelectKBest, chi2
+
 
 # Create the training and test datasets.
-df_train_len=len(df_train_dum)
-train=df_train_dum[:df_train_len]
+df_train_len=len(df_train)
+train=df_train[:df_train_len]
 x_train=train.drop(labels="satisfaction",axis=1) # df with only satisfaction and df with every other variable
 y_train=train["satisfaction"]
 x_train,x_test,y_train,y_test=train_test_split(x_train,y_train,test_size=0.33,random_state=42)
@@ -109,19 +144,8 @@ print("x_test",len(x_test))
 print("y_train",len(y_train))
 print("y_test",len(y_test))
 print("test",len(test))
-# Let's use chi2 test of importance to find the top 10 categorical features
-r_scaler = preprocessing.MinMaxScaler()
-r_scaler.fit(df_train_dum)
-modified_data = pd.DataFrame(r_scaler.transform(df_train_dum), columns=df_train_dum.columns)
-print(modified_data.head)
-# Chi2, top 10
-selector = SelectKBest(chi2, k=10)
-selector.fit(x_train, y_train)
-x_new = selector.transform(x_train)
-print(x_train.columns[selector.get_support(indices=True)])
-# The last 6 features here are important ones for the selection process.
-# We'll create a list of these 6 and put them in our model.
-cat_important=['Type of Travel_Personal Travel', 'Class_Eco', 'Inflight wifi service_5', 'Online boarding_2', 'Online boarding_3', 'Online boarding_5']
+
+
 
 
 
