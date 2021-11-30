@@ -124,7 +124,9 @@ print(x_train.columns[selector.get_support(indices=True)])
 
 # 7 features here are important ones for the selection process.
 # We'll create a list of these and put them in our model.
-df_train_important=["Customer Type", "Type of Travel", "Class", "Flight Distance", "Inflight wifi service", "Online boarding", "Seat comfort"]
+important=["Customer Type", "Type of Travel", "Class", "Flight Distance", "Inflight wifi service", "Online boarding", "Seat comfort"]
+df_train_important = df_train[important]
+df_test_important = df_test[important]
 
 from sklearn.model_selection import train_test_split,StratifiedKFold,GridSearchCV
 from sklearn.linear_model import LogisticRegression
@@ -134,49 +136,49 @@ from sklearn.metrics import roc_auc_score, roc_curve
 
 
 # Create the training and test datasets.
-df_train_len=len(df_train)
-train=df_train[:df_train_len]
-x_train=train.drop(labels="satisfaction",axis=1) # df with only satisfaction and df with every other variable
-y_train=train["satisfaction"]
-x_train,x_test,y_train,y_test=train_test_split(x_train,y_train,test_size=0.33,random_state=42)
-print("x_train",len(x_train))
-print("x_test",len(x_test))
-print("y_train",len(y_train))
-print("y_test",len(y_test))
+#df_train_len=len(df_train_important)
+#test=df_test_important[df_train_important]
+#train=df_train[:df_train_len]
+#x_train=train.drop(labels="satisfaction",axis=1) # df with only satisfaction and df with every other variable
+#y_train=train["satisfaction"]
+x_train_model,x_test_model,y_train_model,y_test_model=train_test_split(df_train_important,y_train,test_size=0.33,random_state=42)
+print("x_train_model",len(x_train_model))
+print("x_test_model",len(x_test_model))
+print("y_train_model",len(y_train_model))
+print("y_test_model",len(y_test_model))
 print("test",len(test))
 
 
 
 
 
-# Great. now let's find use ANOVA to find the importance of the numerical variables
 
 
 # Initiate the Logistic Regression Model and print the accuracy
 logreg=LogisticRegression()
-logreg.fit(x_train,y_train)
-acc_log_train=round(logreg.score(x_train,y_train)*100,2)
-acc_log_test=round(logreg.score(x_test,y_test)*100,2)
+logreg.fit(x_train_model,y_train_model)
+acc_log_train=round(logreg.score(x_train_model,y_train_model)*100,2)
+acc_log_test=round(logreg.score(x_test_model,y_test_model)*100,2)
 print("Training Accuracy: % {}".format(acc_log_train))
 print("Test Accuracy: % {}".format(acc_log_test))
 # Print the coef's
 print(logreg.coef_)
 
 # ROC predictions
-ns_probs = [0 for _ in range(len(y_test))]
+ns_probs = [0 for _ in range(len(y_test_model))]
 # predict probabilities
-lr_probs = logreg.predict_proba(x_test)
+lr_probs = logreg.predict_proba(x_test_model)
 # keep probabilities for the positive outcome only
 lr_probs = lr_probs[:, 1]
 # calculate scores
-ns_auc = roc_auc_score(y_test, ns_probs)
-lr_auc = roc_auc_score(y_test, lr_probs)
+ns_auc = roc_auc_score(y_test_model, ns_probs)
+lr_auc = roc_auc_score(y_test_model, lr_probs)
 # summarize scores
 print('No Skill: ROC AUC=%.3f' % (ns_auc))
 print('Logistic: ROC AUC=%.3f' % (lr_auc))
 # calculate roc curves
-ns_fpr, ns_tpr, _ = roc_curve(y_test, ns_probs)
-lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
+ns_fpr, ns_tpr, _ = roc_curve(y_test_model, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_test_model, lr_probs)
 # plot the roc curve for the model
 plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
 plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
@@ -189,7 +191,7 @@ plt.legend()
 plt.show()
 # Summary page for the model
 import statsmodels.api as sm
-logit_model=sm.Logit(y_train,x_train)
+logit_model=sm.Logit(y_train_model,x_train_model)
 result=logit_model.fit()
 print(result.summary())
 
