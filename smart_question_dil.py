@@ -207,4 +207,67 @@ from sklearn.metrics import classification_report
 logit_model=sm.Logit(y_train_model,x_train_model)
 result=logit_model.fit()
 print(result.summary())
+---------------------
+# All features
+df_train=df_train.drop(labels="satisfaction",axis=1)
+x_train_model2,x_test_model2,y_train_model2,y_test_model2=train_test_split(df_train,y_train,test_size=0.33,random_state=42)
+print("x_train_model2",len(x_train_model2))
+print("x_test_model2",len(x_test_model2))
+print("y_train_model2",len(y_train_model2))
+print("y_test_model2",len(y_test_model2))
+print("test",len(test))
+
+# Initiate the Logistic Regression Model and print the accuracy
+logreg2=LogisticRegression()
+logreg2.fit(x_train_model2,y_train_model2)
+
+importance2=logreg2.coef_[0]
+for i,v in enumerate(importance2):
+	print('Feature: %0d, Score: %.5f' % (i,v))
+# plot feature importance
+plt.bar([x for x in range(len(importance2))], importance2)
+plt.title('Bar plot of feature importance')
+plt.xlabel("Features")
+plt.ylabel("Coefficients")
+plt.show()
+
+acc_log_train=round(logreg2.score(x_train_model2,y_train_model2)*100,2)
+acc_log_test=round(logreg2.score(x_test_model2,y_test_model2)*100,2)
+print("Training Accuracy: % {}".format(acc_log_train))
+print("Test Accuracy: % {}".format(acc_log_test))
+# Print the coef's
+print(logreg2.coef_)
+
+# ROC predictions
+ns_probs2 = [0 for _ in range(len(y_test_model2))]
+# predict probabilities
+lr_probs2 = logreg2.predict_proba(x_test_model2)
+# keep probabilities for the positive outcome only
+lr_probs2 = lr_probs2[:, 1]
+# calculate scores
+ns_auc2 = roc_auc_score(y_test_model2, ns_probs2)
+lr_auc2 = roc_auc_score(y_test_model2, lr_probs2)
+# summarize scores
+print('No Skill: ROC AUC=%.3f' % (ns_auc2))
+print('Logistic: ROC AUC=%.3f' % (lr_auc2))
+# calculate roc curves
+ns_fpr2, ns_tpr2, _ = roc_curve(y_test_model2, ns_probs2)
+lr_fpr2, lr_tpr2, _ = roc_curve(y_test_model2, lr_probs2)
+# plot the roc curve for the model
+plt.plot(ns_fpr2, ns_tpr2, linestyle='--', label='No Skill: ROC AUC=%.3f'%(ns_auc2))
+plt.plot(lr_fpr2, lr_tpr2, marker='.', label='Logistic: ROC AUC=%.3f' % (lr_auc2))
+# axis labels
+plt.title("ROC Curve for All Features(Logistic)")
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+# show the legend
+plt.legend()
+# show the plot
+plt.show()
+# Summary page for the model
+import statsmodels.api as sm
+from sklearn.metrics import classification_report
+logit_model2=sm.Logit(y_train_model2,x_train_model2)
+result2=logit_model2.fit()
+print(result2.summary())
 
