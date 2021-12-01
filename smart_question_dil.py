@@ -151,10 +151,6 @@ print("test",len(test))
 
 
 
-
-
-
-
 # Initiate the Logistic Regression Model and print the accuracy
 logreg=LogisticRegression()
 logreg.fit(x_train_model,y_train_model)
@@ -175,7 +171,6 @@ print("Training Accuracy: % {}".format(acc_log_train))
 print("Test Accuracy: % {}".format(acc_log_test))
 # Print the coef's
 print(logreg.coef_)
-
 # ROC predictions
 ns_probs = [0 for _ in range(len(y_test_model))]
 # predict probabilities
@@ -202,12 +197,14 @@ plt.legend()
 # show the plot
 plt.show()
 # Summary page for the model
+y_predict=logreg.predict((x_test_model))
+print(confusion_matrix(y_test_model, y_predict))
 import statsmodels.api as sm
 from sklearn.metrics import classification_report
 logit_model=sm.Logit(y_train_model,x_train_model)
 result=logit_model.fit()
 print(result.summary())
----------------------
+
 # All features
 df_train=df_train.drop(labels="satisfaction",axis=1)
 x_train_model2,x_test_model2,y_train_model2,y_test_model2=train_test_split(df_train,y_train,test_size=0.33,random_state=42)
@@ -265,6 +262,8 @@ plt.legend()
 # show the plot
 plt.show()
 # Summary page for the model
+y_predict2=logreg2.predict((x_test_model2))
+print(confusion_matrix(y_test_model2, y_predict2))
 import statsmodels.api as sm
 from sklearn.metrics import classification_report
 logit_model2=sm.Logit(y_train_model2,x_train_model2)
