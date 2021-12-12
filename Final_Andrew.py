@@ -64,6 +64,8 @@ Class=airline["Class"]
 crosstable= pd.crosstab(satisfaction,Class)
 crosstable
 # %%
+satisfaction
+# %%
 ## find the p value
 from scipy.stats import chi2_contingency
 stat, p, dof, expected=chi2_contingency(crosstable)
@@ -84,21 +86,21 @@ x_train, x_test, y_train, y_test = train_test_split(x, y,random_state=1)
 
 # %%
 ###DecisionTreeRegression
-from sklearn.tree import DecisionTreeRegressor
-dtr=DecisionTreeRegressor(random_state=1)
-dtr.fit(x_train,y_train)
+from sklearn.tree import DecisionTreeClassifier
+dtc=DecisionTreeClassifier(random_state=1)
+dtc.fit(x_train,y_train)
 
 # %%
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import classification_report
-y_predict=dtr.predict((x_test))
+y_predict=dtc.predict((x_test))
 print(accuracy_score(y_test, y_predict))
 print(confusion_matrix(y_test, y_predict))
 print(classification_report(y_test, y_predict))
 # %%
 ###Feature Importance
-feature_importances=pd.DataFrame({'features':x_train.columns,'feature_importance':dtr.feature_importances_})
+feature_importances=pd.DataFrame({'features':x_train.columns,'feature_importance':dtc.feature_importances_})
 feature_importances1=feature_importances.sort_values(by='feature_importance',ascending=False)
 sns.barplot(feature_importances1["features"],feature_importances1["feature_importance"])
 plt.xticks(rotation=90)
