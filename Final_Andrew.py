@@ -106,9 +106,20 @@ plt.xticks(rotation=90)
 ##From this graph, we can tell that online boarding, wifi service, and type of travel are the top 3 important features
 ##So the company could work more on the these 3 factors to improve satisfaction
 # %%
-
+target = list(airline['satisfaction'].unique())
+feature_names = list(x.columns)
 # %%
+from sklearn import tree
+import graphviz
+dot_data = tree.export_graphviz(dtc,
+                                out_file=None, 
+                      feature_names=feature_names,  
+                      class_names=target,  
+                      filled=True, rounded=True,  
+                      special_characters=True)  
+graph = graphviz.Source(dot_data)  
 
+graph
 # %%
 
 # %%
