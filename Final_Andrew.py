@@ -64,7 +64,6 @@ Class=airline["Class"]
 crosstable= pd.crosstab(satisfaction,Class)
 crosstable
 # %%
-satisfaction
 # %%
 ## find the p value
 from scipy.stats import chi2_contingency
@@ -80,7 +79,7 @@ p
 # %%
 ###Split test and train
 from sklearn.model_selection import train_test_split
-x=airline.drop(['satisfaction',"Arrival Delay in Minutes"], axis=1)
+x=airline[["Customer Type", "Type of Travel", "Class", "Flight Distance", "Inflight wifi service", "Online boarding", "Seat comfort", "Inflight entertainment", "On-board service", "Leg room service"]]
 y=airline["satisfaction"]
 x_train, x_test, y_train, y_test = train_test_split(x, y,random_state=1)
 
