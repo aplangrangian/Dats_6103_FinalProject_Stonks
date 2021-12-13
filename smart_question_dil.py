@@ -188,7 +188,75 @@ x_new = selector.transform(x_train)
 print(x_train.columns[selector.get_support(indices=True)])
 important = ['satisfaction','Customer Type', 'Type of Travel', 'Class', 'Flight Distance',
        'Inflight wifi service', 'Online boarding', 'Seat comfort',
-       'Inflight entertainment'] #'On-board service', 'Leg room service']
+       'Inflight entertainment','On-board service', 'Leg room service']
+
+df_train_important2 = df_train[important]
+x_train=df_train_important2.drop(labels="satisfaction",axis=1) # df with only satisfaction and df with every other variable
+y_train=df_train_important2["satisfaction"]
+
+x_train_model,x_test_model,y_train_model,y_test_model=train_test_split(x_train, y_train, test_size=0.25, random_state=42)
+print("x_train_model",len(x_train_model))
+print("x_test_model",len(x_test_model))
+print("y_train_model",len(y_train_model))
+print("y_test_model",len(y_test_model))
+print("test",len(test))
+
+logreg=LogisticRegression()
+logreg.fit(x_train_model,y_train_model)
+
+importance=logreg.coef_[0]
+for i,v in enumerate(importance):
+	print('Feature: %0d, Score: %.5f' % (i,v))
+# plot feature importance
+plt.bar([x for x in range(len(importance))], importance)
+plt.title('Bar plot of feature importance')
+plt.xlabel('features')
+plt.ylabel("Coefficients")
+plt.show()
+
+acc_log_train=round(logreg.score(x_train_model,y_train_model)*100,2)
+acc_log_test=round(logreg.score(x_test_model,y_test_model)*100,2)
+print("Training Accuracy: % {}".format(acc_log_train))
+print("Test Accuracy: % {}".format(acc_log_test))
+# Print the coef's
+print(logreg.coef_)
+# ROC predictions
+ns_probs = [0 for _ in range(len(y_test_model))]
+# predict probabilities
+lr_probs = logreg.predict_proba(x_test_model)
+# keep probabilities for the positive outcome only
+lr_probs = lr_probs[:, 1]
+# calculate scores
+ns_auc = roc_auc_score(y_test_model, ns_probs)
+lr_auc = roc_auc_score(y_test_model, lr_probs)
+# summarize scores
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+# calculate roc curves
+ns_fpr, ns_tpr, _ = roc_curve(y_test_model, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_test_model, lr_probs)
+# plot the roc curve for the model
+plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill: ROC AUC=%.3f'%(ns_auc))
+plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic: ROC AUC=%.3f' % (lr_auc))
+# axis labels
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+# show the legend
+plt.legend()
+# show the plot
+plt.show()
+# Summary page for the model
+y_predict=logreg.predict((x_test_model))
+print(confusion_matrix(y_test_model, y_predict))
+logit_model=sm.Logit(y_train_model,x_train_model)
+result=logit_model.fit()
+print(result.summary())
+
+## Drop On-board service and Leg-room service:
+
+important = ['satisfaction','Customer Type', 'Type of Travel', 'Class', 'Flight Distance',
+       'Inflight wifi service', 'Online boarding', 'Seat comfort',
+       'Inflight entertainment']
 
 df_train_important2 = df_train[important]
 x_train=df_train_important2.drop(labels="satisfaction",axis=1) # df with only satisfaction and df with every other variable
@@ -254,7 +322,7 @@ print(result.summary())
 
 
 
-# Let's start prep by making Dummy variables for the variables
+# Let's make Dummy variables for the variables
 # Drop first so to avoid co-linearity
 df_train_dum=pd.get_dummies(df_train, columns=columns, drop_first=True)
 df_test_dum=pd.get_dummies(df_test, columns=columns, drop_first=True)
@@ -272,7 +340,7 @@ selector.fit(x_train, y_train)
 x_new = selector.transform(x_train)
 print(x_train.columns[selector.get_support(indices=True)])
 
-# 7 features here are important ones for the selection process.
+# features here are important ones for the selection process.
 # We'll create a list of these and put them in our model.
 #important = ['satisfaction', 'Type of Travel_Personal Travel', 'Class_Eco',
 #       'Inflight wifi service_5', 'Ease of Online booking_5',
