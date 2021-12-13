@@ -84,19 +84,29 @@ y=airline["satisfaction"]
 x_train, x_test, y_train, y_test = train_test_split(x, y,random_state=1)
 
 # %%
-###DecisionTreeRegression
+###DecisionTree Classifier
 from sklearn.tree import DecisionTreeClassifier
-dtc=DecisionTreeClassifier(random_state=1)
+dtc=DecisionTreeClassifier( criterion='entropy',random_state=1)
 dtc.fit(x_train,y_train)
 
 # %%
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix 
 from sklearn.metrics import classification_report
-y_predict=dtc.predict((x_test))
-print(accuracy_score(y_test, y_predict))
-print(confusion_matrix(y_test, y_predict))
-print(classification_report(y_test, y_predict))
+y_train_predict=dtc.predict((x_train))
+y_test_predict=dtc.predict((x_test))
+# Evaluate train-set accuracy
+print('train set evaluation: ')
+print(accuracy_score(y_train, y_train_predict))
+print(confusion_matrix(y_train, y_train_predict))
+print(classification_report(y_train, y_train_predict))
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print(accuracy_score(y_test, y_test_predict))
+print(confusion_matrix(y_test, y_test_predict))
+print(classification_report(y_test, y_test_predict))
+
+
 # %%
 ###Feature Importance
 feature_importances=pd.DataFrame({'features':x_train.columns,'feature_importance':dtc.feature_importances_})
@@ -105,21 +115,53 @@ sns.barplot(feature_importances1["features"],feature_importances1["feature_impor
 plt.xticks(rotation=90)
 ##From this graph, we can tell that online boarding, wifi service, and type of travel are the top 3 important features
 ##So the company could work more on the these 3 factors to improve satisfaction
-# %%
-target = list(airline['satisfaction'].unique())
-feature_names = list(x.columns)
-# %%
-from sklearn import tree
-import graphviz
-dot_data = tree.export_graphviz(dtc,
-                                out_file=None, 
-                      feature_names=feature_names,  
-                      class_names=target,  
-                      filled=True, rounded=True,  
-                      special_characters=True)  
-graph = graphviz.Source(dot_data)  
 
-graph
 # %%
+maxlevel=None 
+crit = 'gini' 
+dtc1 = DecisionTreeClassifier(max_depth=maxlevel, criterion=crit, random_state=1)
+dtc1.fit(x_train,y_train)
+y_train_pred = dtc1.predict(x_train)
+y_test_pred = dtc1.predict(x_test)
+# Evaluate train-set accuracy
+print('train set evaluation: ')
+print(accuracy_score(y_train, y_train_pred))
+print(confusion_matrix(y_train, y_train_pred))
+print(classification_report(y_train, y_train_pred))
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print(accuracy_score(y_test, y_test_pred))
+print(confusion_matrix(y_test, y_test_pred))
+print(classification_report(y_test, y_test_pred))
 
+
+
+# %%
+from sklearn.metrics import roc_auc_score, roc_curve
+
+# generate a no skill prediction (majority class)
+ns_probs = [0 for _ in range(len(y_test))]
+# predict probabilities
+lr_probs = dtc.predict_proba(x_test)
+# keep probabilities for the positive outcome only
+lr_probs = lr_probs[:, 1]
+# calculate scores
+ns_auc = roc_auc_score(y_test, ns_probs)
+lr_auc = roc_auc_score(y_test, lr_probs)
+# summarize scores
+print('No Skill: ROC AUC=%.3f' % (ns_auc))
+print('Logistic: ROC AUC=%.3f' % (lr_auc))
+# calculate roc curves
+ns_fpr, ns_tpr, _ = roc_curve(y_test, ns_probs)
+lr_fpr, lr_tpr, _ = roc_curve(y_test, lr_probs)
+# plot the roc curve for the model
+plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+plt.plot(lr_fpr, lr_tpr, marker='.', label='DTC')
+# axis labels
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+# show the legend
+plt.legend()
+# show the plot
+plt.show()
 # %%
