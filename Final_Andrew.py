@@ -119,7 +119,7 @@ plt.xticks(rotation=90)
 # %%
 maxlevel=None 
 crit = 'gini' 
-dtc1 = DecisionTreeClassifier(max_depth=maxlevel, criterion=crit, random_state=1)
+dtc1 = DecisionTreeClassifier(max_depth=2, criterion=crit, random_state=1)
 dtc1.fit(x_train,y_train)
 y_train_pred = dtc1.predict(x_train)
 y_test_pred = dtc1.predict(x_test)
@@ -137,8 +137,8 @@ print(classification_report(y_test, y_test_pred))
 
 
 # %%
+####ROC AUC Score
 from sklearn.metrics import roc_auc_score, roc_curve
-
 # generate a no skill prediction (majority class)
 ns_probs = [0 for _ in range(len(y_test))]
 # predict probabilities
@@ -164,4 +164,17 @@ plt.ylabel('True Positive Rate')
 plt.legend()
 # show the plot
 plt.show()
+# %%
+
+
+
+# %%
+#####Tree plot
+from sklearn import tree
+a=["satisfied","not-satisfied"]
+fig = plt.figure(figsize=(25,20))
+_ = tree.plot_tree(dtc1, 
+                   feature_names=x.columns,  
+                   class_names=a,
+                   filled=True)
 # %%
